@@ -7,15 +7,32 @@ lines = matlab.desktop.editor.textToLines(text);
 lines = [{''}; lines; {''}];
 nlines = numel(lines);
 
+% Parse file into a tree
+tree = mtree(text);
+
+% Get keywords (ELSEIF separately)
+lineno.Keywords      = false(nlines,1);
+keywords             = {'IF','ELSE','TRY','CATCH','WHILE','FOR','PARFOR','FUNCTION','CASE','OTHERWISE'}; 
+tmp                  = tree.mtfind('Kind',keywords);
+pos                  = [tmp.lineno; tmp.lastone];
+tmp                  = tree.mtfind('Kind','ELSEIF');
+pos                  = [pos; tmp.lineno; tmp.previous.lastone] + 1;
+lineno.Keywords(pos) = true;
+
 % Empty line idx
 lineno.Empty = cellfun('isempty',regexp(lines, '[^ \n]','once'));
 
 % Comment line idx
-lineno.Comment = ~cellfun('isempty',regexp(lines, '^ *%','once'));
+lineno.Comment = ~cellfun('isempty',regexp(lines, '^ *%[^%]','once'));
+
+% Double %% 
+lineno.Cell = ~cellfun('isempty',regexp(lines, '^ *%%','once'));
 
 % Char index
 chidx = repmat('c',nlines,1);
+chidx(lineno.Keywords) = ' ';
 chidx(lineno.Empty) = ' ';
+chidx(lineno.Cell) = ' ';
 chidx(lineno.Comment) = '%';
 
 % Create blocks
