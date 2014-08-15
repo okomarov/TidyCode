@@ -48,35 +48,35 @@ while ii < nlines
             cblock = false;
         end
     elseif chidx(ii) == ' '
-        fromto(2,b) = ii-1;
+        fromto(2,b) = ii;
         b = b + 1;
         cblock = true;
     end
 end
-fromto = fromto(:,fromto(1,:)~=0 & diff(fromto) > 0);
-
-% Strip lines of the bread/padding
-lines = lines(2:end-1);
-fromto(1,:) = fromto(1,:)-1;
+fromto = fromto(:,fromto(1,:)~=0 & diff(fromto) > 1);
 
 % Get line numbers of assignments
-tree = mtree(text);
-tree = tree.asgvars;
-lineno.Assign = tree.lineno;
+lineno.Assign = false(nlines,1);
+asgpos = tree.asgvars.lineno + 1;
+lineno.Assign(asgpos) = true;
 
-% Tag assignments with their block
-[counts, subs] = histc(lineno.Assign, fromto(:));
-for ii = 1:2:size(fromto,2)
-    idx = subs == ii;
-    linepos = lineno.Assign(idx);
-    tmp = lines(linepos);
-    tmp = regexprep(tmp,' *= *',' = ','once');
-    if counts(ii) > 1
-        pos    = regexp(tmp,'=','once');
-        maxp   = max([pos{:}])-1;
-        repstr = sprintf('${[repmat('' '',1,%d-numel($`)) ''='']}',maxp);
-        tmp    = regexprep(tmp, '=',repstr,'once');
+% Bring all assignment to 'LHS = RHS'
+idx = lineno.Assign & chidx == 'c';
+lines(idx) = regexprep(lines(idx),' *= *',' = ','once');
+
+% LOOP by block and justify
+[counts, subs] = histc(asgpos, fromto(:));
+for ii = 1:2:size(fromto,2)*2
+    if counts(ii) > 0
+        linepos = asgpos(subs == ii);
+        tmp = lines(linepos);
+        if counts(ii) > 1
+            pos    = regexp(tmp,'=','once');
+            maxp   = max([pos{:}])-1;
+            repstr = sprintf('${[repmat('' '',1,%d-numel($`)) ''='']}',maxp);
+            tmp    = regexprep(tmp, '=',repstr,'once');
+        end
+        lines(linepos) = tmp;
     end
-    lines(linepos) = tmp;
 end
 obj.Text = matlab.desktop.editor.linesToText(lines);
