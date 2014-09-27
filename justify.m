@@ -1,10 +1,19 @@
 function justify
+% JUSTIFY Justifies blocks of code
+%
+%
+%
+
+% Author: Oleg Komarov (oleg.komarov@hotmail.it) 
+% Tested on R2014a Win7 64bit
+% 2014 Aug 14 - created
+
 % Get active document
 obj   = matlab.desktop.editor.getActive;
 text  = obj.Text;
 lines = matlab.desktop.editor.textToLines(text);
 
-% Sandwich lines between two empty ones
+% Sandwich lines between two empty ones (need it for blocks creation)
 lines  = [{''}; lines; {''}];
 nlines = numel(lines);
 
@@ -80,5 +89,5 @@ for ii = 1:2:size(fromto,2)*2
         lines(linepos) = tmp;
     end
 end
-obj.Text = matlab.desktop.editor.linesToText(lines);
+obj.Text = matlab.desktop.editor.linesToText(lines(2:end-1));
 end
