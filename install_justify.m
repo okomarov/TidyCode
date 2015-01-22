@@ -7,28 +7,41 @@ addpath(folderpath)
 savepath
 
 % Add shortcut
-s  = struct('label'   , 'justify',...
+s      = struct('label'   , 'justify',...
            'callback', 'justify',...
            'icon'    , fullfile(folderpath,'justify.jpg'),...
            'category', 'Shortcuts',...
            'editable', 'true');
-su = com.mathworks.mlwidgets.shortcuts.ShortcutUtils();
-su.addShortcutToBottom(s.label, s.callback, s.icon, s.category, s.editable);
+su     = com.mathworks.mlwidgets.shortcuts.ShortcutUtils();
+jArray = su.getShortcutsByCategory('Shortcuts');
+nlab   = jArray.size();
+it     = jArray.iterator();
+labels = cell(nlab,1);
+for ii = 1:nlab
+    labels{ii} = char(it.next.getLabel());
+end
+if ~strcmp(s.label,labels)
+    su.addShortcutToBottom(s.label, s.callback, s.icon, s.category, s.editable);
+    pause(0.1)
+end
 
 % Add shortcut to Quick Access Bar
-% TODO: add only if does not exist
 desktop  = com.mathworks.mde.desk.MLDesktop.getInstance();
 QAB      = desktop.getQuickAccessConfiguration;
 import com.mathworks.toolstrip.factory.*
 toolPath = TSToolPath(TSToolPath('shortcuts','general'),'justify','matlab_shortcut_toolset');
-QAB.addTool(toolPath)
-QAB.setLabelVisible(toolPath,false)
+if ~QAB.containsTool(toolPath)
+    QAB.addTool(toolPath)
+    QAB.setLabelVisible(toolPath,false)
+end
 
 % Set button mnemonic
-% TODO: get component by full to0lname
-jDesktop = desktop.getMainFrame();
-jQAB     = jDesktop.getQuickAccessBar().getComponent();
-jButton  = jQAB.getComponent(jQAB.getComponentCount-2);
-jButton.setButtonMnemonic('10');
+jDesktop   = desktop.getMainFrame();
+buttonList = jDesktop.getQuickAccessBar().getComponent().getComponents();
+for ii = numel(buttonList):-1:1
+    if regexp(char(buttonList(ii).getName), s.label, 'once')
+        buttonList(ii).setButtonMnemonic('j')
+    end
+end
 
 end
