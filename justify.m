@@ -13,6 +13,9 @@ obj   = matlab.desktop.editor.getActive;
 text  = obj.Text;
 lines = matlab.desktop.editor.textToLines(text);
 
+% Get cursor position
+sel = obj.Selection;
+
 % Sandwich lines between two empty ones (need it for blocks creation)
 lines  = [{''}; lines; {''}];
 nlines = numel(lines);
@@ -90,4 +93,7 @@ for ii = 1:2:size(fromto,2)*2
     end
 end
 obj.Text = matlab.desktop.editor.linesToText(lines(2:end-1));
+
+% Restore cursor position
+obj.insertTextAtPositionInLine('',sel(1),sel(2));
 end
