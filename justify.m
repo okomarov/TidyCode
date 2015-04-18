@@ -23,6 +23,13 @@ nlines = numel(lines);
 % Parse file into a tree
 tree = mtree(text);
 
+% Check for mlint error
+if ~isempty(tree.mtfind('Kind','ERR'))
+    [~,name,ext] = fileparts(obj.Filename);
+    warning('justify:mlintError','''%s'' contains syntax errors. Cannot proceed.',[name,ext])
+    return
+end
+
 % Kerywords idx (ELSEIF separately)
 lineno.Keywords         = false(nlines,1);
 keywords                = {'IF','ELSE','TRY','CATCH','WHILE','FOR','PARFOR','FUNCTION','CASE','OTHERWISE'};
