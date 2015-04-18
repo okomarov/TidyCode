@@ -4,7 +4,7 @@ function justify
 %
 %
 
-% Author: Oleg Komarov (oleg.komarov@hotmail.it) 
+% Author: Oleg Komarov (oleg.komarov@hotmail.it)
 % Tested on R2014a Win7 64bit
 % 2014 Aug 14 - created
 
@@ -24,24 +24,24 @@ nlines = numel(lines);
 tree = mtree(text);
 
 % Kerywords idx (ELSEIF separately)
-lineno.Keywords      = false(nlines,1);
-keywords             = {'IF','ELSE','TRY','CATCH','WHILE','FOR','PARFOR','FUNCTION','CASE','OTHERWISE'};
-tmp                  = tree.mtfind('Kind',keywords);
-pos                  = [tmp.lineno; tmp.lastone];
-tmp                  = tree.mtfind('Kind','ELSEIF');
-pos                  = [pos; tmp.lineno; tmp.previous.lastone] + 1;
-lineno.Keywords(pos) = true;
+lineno.Keywords         = false(nlines,1);
+keywords                = {'IF','ELSE','TRY','CATCH','WHILE','FOR','PARFOR','FUNCTION','CASE','OTHERWISE'};
+tmp                     = tree.mtfind('Kind',keywords);
+asgpos                  = [tmp.lineno; tmp.lastone];
+tmp                     = tree.mtfind('Kind','ELSEIF');
+asgpos                  = [asgpos; tmp.lineno; tmp.previous.lastone] + 1;
+lineno.Keywords(asgpos) = true;
 
 % Empty line idx
 lineno.Empty = cellfun('isempty',regexp(lines, '[^ \n]','once'));
 
 % Comment line idx
-lineno.Comment = ~cellfun('isempty',regexp(lines, '^ *%[^%]','once'));
+lineno.Comment = ~cellfun('isempty',regexp(lines, '^ *%([^%]|$)','once'));
 
 % Double %%
 lineno.Cell = ~cellfun('isempty',regexp(lines, '^ *%%','once'));
 
-% Char index
+% Code lines index
 chidx                  = repmat('c',nlines,1);
 chidx(lineno.Keywords) = ' ';
 chidx(lineno.Empty)    = ' ';
@@ -49,48 +49,54 @@ chidx(lineno.Cell)     = ' ';
 chidx(lineno.Comment)  = '%';
 
 % Create blocks
-ii     = 1;
-fromto = zeros(2, ceil(nlines/2));
-b      = 1;
-cblock = true;
+[from,to] = deal(zeros(1, ceil(nlines/2)));
+ii        = 1;
+b         = 1;
+codeBlock = true;
 while ii < nlines
     ii = ii + 1;
-    if cblock
+    if codeBlock
         if chidx(ii) == 'c'
-            fromto(1,b) = ii;
-            cblock      = false;
+            from(b)   = ii;
+            codeBlock = false;
         end
     elseif chidx(ii) == ' '
-        fromto(2,b) = ii;
-        b           = b + 1;
-        cblock      = true;
+        to(b)     = ii;
+        b         = b + 1;
+        codeBlock = true;
     end
 end
-fromto = fromto(:,fromto(1,:)~=0 & diff(fromto) > 1);
+multiLine = from ~= 0 & (to-from) > 1;
+from      = from(multiLine);
+to        = to(multiLine);
 
 % Get line numbers of assignments
-lineno.Assign         = false(nlines,1);
-asgpos                = tree.asgvars.lineno + 1;
-lineno.Assign(asgpos) = true;
+lineno.Assign          = false(nlines,1);
+asgline                = tree.asgvars.lineno + 1;
+lineno.Assign(asgline) = true;
 
 % Bring all assignment to 'LHS = RHS'
 idx        = lineno.Assign & chidx == 'c';
-lines(idx) = regexprep(lines(idx),' *= *',' = ','once');
+lines(idx) = regexprep(lines(idx),' *(?<=[^<>])= *',' = ','once');
 
 % LOOP by block and justify
-[counts, subs] = histc(asgpos, fromto(:));
-for ii = 1:2:size(fromto,2)*2
-    if counts(ii) > 0
-        linepos = asgpos(subs == ii);
-        tmp     = lines(linepos);
-        if counts(ii) > 1
-            pos    = regexp(tmp,'=','once');
-            maxp   = max([pos{:}])-1;
-            repstr = sprintf('${[repmat('' '',1,%d-numel($`)) ''='']}',maxp);
-            tmp    = regexprep(tmp, '=',repstr,'once');
+N = size(from,2);
+for ii = 1:N
+    idx     = from(ii) <= asgline & asgline < to(ii);
+    linepos = asgline(idx);
+    tmp     = lines(linepos);
+    asgpos  = regexp(tmp,'(?<=[^<>])=','once');
+    asgpos  = [asgpos{:}];
+    % Pre-pad '=' with blanks to have a common alignment point
+    padlen  = max(asgpos) - asgpos;
+    for r = 1:size(tmp,1)
+        if padlen(r) > 0
+            tmp{r} = [tmp{r}(1:asgpos(r)-1),...
+                      repmat(' ',1,padlen(r)),...
+                      tmp{r}(asgpos(r):end)];
         end
-        lines(linepos) = tmp;
     end
+    lines(linepos) = tmp;
 end
 obj.Text = matlab.desktop.editor.linesToText(lines(2:end-1));
 
