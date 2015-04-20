@@ -84,15 +84,21 @@ lineno.Assign(asgline) = true;
 
 % Bring all assignment to 'LHS = RHS'
 idx        = lineno.Assign & chidx == 'c';
-lines(idx) = regexprep(lines(idx),' *(?<=[^<>])= *',' = ','once');
+expr       = {' *'              %   match leading white spaces
+              '(?<=[^<>=])'     %   avoid matching <=, >=, ==
+              '='               %   match =
+              '(?=[^=])'        %   avoid matching ==
+              ' *'};            %   matching trailing white spaces
+lines(idx) = regexprep(lines(idx),[expr{:}],' = ','once');
 
 % LOOP by block and justify
-N = size(from,2);
+expr = [expr{2:end-1}];
+N    = size(from,2);
 for ii = 1:N
     idx     = from(ii) <= asgline & asgline < to(ii);
     linepos = asgline(idx);
     tmp     = lines(linepos);
-    asgpos  = regexp(tmp,'(?<=[^<>])=','once');
+    asgpos  = regexp(tmp,expr,'once');
     asgpos  = [asgpos{:}];
     % Pre-pad '=' with blanks to have a common alignment point
     padlen  = max(asgpos) - asgpos;
