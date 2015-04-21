@@ -8,10 +8,10 @@ savepath
 
 % Add shortcut
 s      = struct('label'   , 'justify',...
-           'callback', 'justify',...
-           'icon'    , fullfile(folderpath,'justify.jpg'),...
-           'category', 'Shortcuts',...
-           'editable', 'true');
+                'callback', 'justify',...
+                'icon'    , fullfile(folderpath,'images','justify.jpg'),...
+                'category', 'Shortcuts',...
+                'editable', 'true');
 su     = com.mathworks.mlwidgets.shortcuts.ShortcutUtils();
 jArray = su.getShortcutsByCategory('Shortcuts');
 nlab   = jArray.size();
@@ -35,7 +35,7 @@ if ~QAB.containsTool(toolPath)
     QAB.setLabelVisible(toolPath,false)
 end
 
-% Set button mnemonic
+% Set button mnemonic. Works only for current session :(
 jDesktop   = desktop.getMainFrame();
 buttonList = jDesktop.getQuickAccessBar().getComponent().getComponents();
 for ii = numel(buttonList):-1:1
@@ -43,5 +43,4 @@ for ii = numel(buttonList):-1:1
         buttonList(ii).setButtonMnemonic('j')
     end
 end
-
 end
