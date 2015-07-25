@@ -85,7 +85,7 @@ lineno.Assign(asgline) = true;
 % Bring all assignment to 'LHS = RHS'
 idx        = lineno.Assign & chidx == 'c';
 expr       = {' *'              %   match leading white spaces
-              '(?<=[^<>=])'     %   avoid matching <=, >=, ==
+              '(?<=[^~<>=])'    %   avoid matching <=, >=, ==, ~=
               '='               %   match =
               '(?=[^=])'        %   avoid matching ==
               ' *'};            %   matching trailing white spaces
