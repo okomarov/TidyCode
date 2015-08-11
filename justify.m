@@ -30,9 +30,9 @@ if ~isempty(tree.mtfind('Kind','ERR'))
     return
 end
 
-% Kerywords idx (ELSEIF separately)
+% Keywords idx (ELSEIF separately)
 lineno.Keywords         = false(nlines,1);
-keywords                = {'IF','ELSE','TRY','CATCH','WHILE','FOR','PARFOR','FUNCTION','CASE','OTHERWISE'};
+keywords                = {'IF','ELSE','TRY','CATCH','WHILE','FOR','PARFOR','FUNCTION','SWITCH','CASE','OTHERWISE'};
 tmp                     = tree.mtfind('Kind',keywords);
 asgpos                  = [tmp.lineno; tmp.lastone];
 tmp                     = tree.mtfind('Kind','ELSEIF');
