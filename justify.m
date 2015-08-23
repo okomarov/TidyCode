@@ -32,7 +32,7 @@ end
 
 % Keywords idx (ELSEIF separately)
 lineno.Keywords         = false(nlines,1);
-keywords                = {'IF','ELSE','TRY','CATCH','WHILE','FOR','PARFOR','FUNCTION','SWITCH','CASE','OTHERWISE'};
+keywords                = {'IF','ELSE','TRY','CATCH','WHILE','FOR','PARFOR','FUNCTION','SWITCH','CASE','OTHERWISE','PROPERTIES'};
 tmp                     = tree.mtfind('Kind',keywords);
 asgpos                  = [tmp.lineno; tmp.lastone];
 tmp                     = tree.mtfind('Kind','ELSEIF');
@@ -100,6 +100,7 @@ for ii = 1:N
     tmp     = lines(linepos);
     asgpos  = regexp(tmp,expr,'once');
     asgpos  = [asgpos{:}];
+    if isempty(asgpos), continue, end
     % Pre-pad '=' with blanks to have a common alignment point
     padlen  = max(asgpos) - asgpos;
     for r = 1:size(tmp,1)
