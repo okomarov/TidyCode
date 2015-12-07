@@ -1,10 +1,26 @@
-function justify
-% JUSTIFY Justifies blocks of code
+function justify()
+% JUSTIFY Improves readability of your code
 %
+% Positions the assignments (=) in a block of code at a common distance.
 %
+% Short example. This block of code
 %
+%     a = 1:10;
+%     myVar = a*10-10;
+%     mySum=a + myVar;
+%
+% becomes the following
+%
+%     a     = 1:10;
+%     myVar = a*10-10;
+%     mySum = a + myVar;
+%
+% For a full description of the padding rules, see justify_example.m
+%
+% See also: JUSTIFY_EXAMPLE
 
-% Author: Oleg Komarov (oleg.komarov@hotmail.it)
+% Author: Oleg Komarov (oleg dot komarov at hotmail dot it)
+% License: BSD 3-clause
 % Tested on R2014a Win7 64bit
 % 2014 Aug 14 - created
 
