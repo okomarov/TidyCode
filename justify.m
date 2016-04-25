@@ -50,10 +50,10 @@ end
 lineno.Keywords         = false(nlines,1);
 keywords                = {'IF','ELSE','TRY','CATCH','WHILE','FOR','PARFOR','FUNCTION','SWITCH','CASE','OTHERWISE','PROPERTIES'};
 tmp                     = tree.mtfind('Kind',keywords);
-asgpos                  = [tmp.lineno; tmp.lastone];
+keypos                  = [tmp.lineno; tmp.lastone];
 tmp                     = tree.mtfind('Kind','ELSEIF');
-asgpos                  = [asgpos; tmp.lineno; tmp.previous.lastone] + 1;
-lineno.Keywords(asgpos) = true;
+keypos                  = [keypos; tmp.lineno; tmp.previous.lastone] + 1;
+lineno.Keywords(keypos) = true;
 
 % Empty line idx
 lineno.Empty = cellfun('isempty',regexp(lines, '[^ \n]','once'));
@@ -95,7 +95,8 @@ to        = to(multiLine);
 
 % Get line numbers of assignments
 lineno.Assign          = false(nlines,1);
-asgline                = tree.asgvars.lineno + 1;
+tmp                    = tree.mtfind('Kind','EQUALS');
+asgline                = tmp.lineno + 1;
 lineno.Assign(asgline) = true;
 
 % Bring all assignment to 'LHS = RHS'
@@ -116,9 +117,11 @@ for ii = 1:N
     tmp     = lines(linepos);
     asgpos  = regexp(tmp,expr,'once');
     asgpos  = [asgpos{:}];
-    if isempty(asgpos), continue, end
+    if isempty(asgpos)
+        continue
+    end
     % Pre-pad '=' with blanks to have a common alignment point
-    padlen  = max(asgpos) - asgpos;
+    padlen = max(asgpos) - asgpos;
     for r = 1:size(tmp,1)
         if padlen(r) > 0
             tmp{r} = [tmp{r}(1:asgpos(r)-1),...
