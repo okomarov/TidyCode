@@ -25,7 +25,10 @@ function justify()
 % 2014 Aug 14 - created
 
 % Get active document
-obj   = matlab.desktop.editor.getActive;
+obj = matlab.desktop.editor.getActive;
+if isempty(obj)
+    return
+end
 text  = obj.Text;
 lines = matlab.desktop.editor.textToLines(text);
 
